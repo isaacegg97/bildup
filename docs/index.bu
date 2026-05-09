@@ -2,13 +2,15 @@
 
 ^C(midnight, snow, electric)
 
-::[pad=6 bg=primary fg=secondary]
+::[pad=8 bg=primary fg=secondary]
 # ^accent[Bildup]^
 ### The Markdown Superset for Interactive Static Pages.
-::[pad=2 bg=secondary fg=primary flex row gap=2]
+
+::[pad=4 col flex gap=2]
+^S(flex, row, gap=2)
 ::button[label="View Specification" primary action=navigate target="#spec"]/
 ::button[label="Comparison" action=navigate target="#comparison"]/
-::
+^S
 ::
 ::
 

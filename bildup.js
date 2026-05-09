@@ -72,7 +72,7 @@ function resolveValue(val, palette) {
   const lower = val.toLowerCase();
   if (SLOT_NAMES[lower] !== undefined) return palette.slot(SLOT_NAMES[lower]);
   if (/^\^[123]$/.test(val)) return palette.slot(parseInt(val[1]));
-  return val;
+  return resolveColor(val);
 }
 
 // ─── CSS builder ──────────────────────────────────────────────────────────────
@@ -368,15 +368,28 @@ function compile(source, opts = {}) {
         j++; continue;
       }
 
-      const blockOpen = trimmed.match(/^::([\w]*)(#\w+)?\[([^\]]*)\]$/) ||
-                        trimmed.match(/^::([\w]+)(#\w+)?$/);
-      if (blockOpen) {
+      const blockMatch = trimmed.match(/^::([\w]*)(#\w+)?\[([^\]]*)\](.*)$/) ||
+                         trimmed.match(/^::([\w]+)(#\w+)?(.*)$/);
+      if (blockMatch) {
+        const tag = blockMatch[1] || 'div', idPart = blockMatch[2], attrStr = blockMatch[3] || '', rest = blockMatch[4] || '';
+        const id = idPart ? idPart.slice(1) : null;
+        const attrs = parseAttrs(attrStr);
+        
+        // Inline block: ::[attrs] Content ::
+        if (rest.trim().endsWith('::')) {
+          const content = rest.trim().slice(0, -2).trim();
+          const css = attrsToCSS(attrs, palette);
+          const idAttr = id ? ` id="${id}"` : '';
+          const cssAttr = css ? ` style="${css}"` : '';
+          flushMd();
+          chunks.push(`<${tag}${idAttr}${cssAttr} class="bildup-block">`);
+          chunks.push(marked.parse(content));
+          chunks.push(`</${tag}>`);
+          j++; continue;
+        }
+
         flushMd();
-        const tag     = blockOpen[1] || 'div';
-        const idPart  = blockOpen[2];
-        const attrStr = blockOpen[3] || '';
-        const id      = idPart ? idPart.slice(1) : null;
-        const css     = attrsToCSS(parseAttrs(attrStr), palette);
+        const css     = attrsToCSS(attrs, palette);
         const idAttr  = id  ? ` id="${id}"` : '';
         const cssAttr = css ? ` style="${css}"` : '';
 
@@ -491,10 +504,11 @@ blockquote{border-left:3px solid #333;margin:1rem 0;padding:.5rem 1rem;color:#aa
 .bildup-block{width:100%;margin:.5rem 0;min-width:0;overflow-wrap:break-word;word-wrap:break-word}
 [style*="display:flex"]>.bildup-block,[style*="display: flex"]>.bildup-block{flex:1;width:auto;margin:0}
 [style*="flex-direction:row"]{align-items:stretch}
-.bildup-input{display:block;width:100%;padding:.55rem .75rem;background:#1a1a1a;border:1px solid #333;border-radius:4px;color:#e8e8e8;font-size:1rem;font-family:inherit;margin:.4rem 0;transition:border-color .15s}
-.bildup-input:focus{outline:none;border-color:#00eeff}textarea.bildup-input{min-height:100px;resize:vertical}
-.bildup-btn{display:inline-block;padding:.55rem 1.25rem;background:#222;border:1px solid #444;border-radius:4px;color:#e8e8e8;font-size:.95rem;font-family:inherit;cursor:pointer;margin:.4rem .3rem .4rem 0;transition:background .15s,border-color .15s}
+.bildup-input{display:block;width:100%;padding:.45rem .6rem;background:#1a1a1a;border:1px solid #333;border-radius:4px;color:#e8e8e8;font-size:.95rem;font-family:inherit;margin:.2rem 0;transition:border-color .15s}
+.bildup-input:focus{outline:none;border-color:#00eeff}textarea.bildup-input{min-height:80px;resize:vertical}
+.bildup-btn{display:inline-block;padding:.4rem .9rem;background:#222;border:1px solid #444;border-radius:4px;color:#e8e8e8;font-size:.9rem;font-family:inherit;cursor:pointer;margin:.2rem .2rem .2rem 0;transition:background .15s,border-color .15s,transform .1s}
 .bildup-btn:hover{background:#2a2a2a;border-color:#666}
+.bildup-btn:active{transform:translateY(1px)}
 .bildup-btn-primary{background:#00eeff22;border-color:#00eeff;color:#00eeff}
 .bildup-btn-primary:hover{background:#00eeff33}
 .bildup-output{display:flex;align-items:center;gap:.75rem;padding:.4rem 0;font-size:1rem}
