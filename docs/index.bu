@@ -1,0 +1,157 @@
+# Bildup Documentation
+
+^C(midnight, snow, electric)
+
+::[pad=6 bg=primary fg=secondary]
+# ^accent[Bildup]^
+### The Markdown Superset for Interactive Static Pages.
+::[pad=2 bg=secondary fg=primary flex row gap=2]
+::button[label="View Specification" primary action=navigate target="#spec"]/
+::button[label="Markdown Guide" action=navigate target="#markdown"]/
+::
+::
+
+::#spec[pad=6]
+## Language Specification
+
+### 1. Color Regions
+Define a three-slot palette (`primary`, `secondary`, `accent`) scoped to a region.
+```markdown
+^C(crimson, obsidian, amber)
+^primary[This text is crimson]^
+^C
+```
+^C(crimson, obsidian, amber)
+::[pad=1]
+> **Demo**: ^primary[This text is crimson]^, ^secondary[this is obsidian]^, and ^accent[this is amber]^.
+::
+^C
+
+---
+
+### 2. Style Regions
+Wrap content in a layout container (flex or grid).
+```markdown
+^S(flex, row, gap=4)
+::[pad=2 bg=surface] Left ::
+::[pad=2 bg=surface] Right ::
+^S
+```
+^S(flex, row, gap=4)
+::[pad=2 bg=surface] **Left Column** ::
+::[pad=2 bg=surface] **Right Column** ::
+^S
+
+---
+
+### 3. Blocks
+Styled containers with padding, background, and text colors.
+```markdown
+::[pad=4 bg=electric fg=midnight]
+# High Contrast Block
+::
+```
+::[pad=4 bg=electric fg=midnight]
+### High Contrast Block
+This block uses the `electric` accent as a background.
+::
+
+---
+
+### 4. Tables
+CSV-based tables. No more pipe syntax.
+```markdown
+::table[striped border]
+Name, Role, Level
+Alice, Engineer, Lead
+Bob, Designer, Senior
+::
+```
+::table[striped border]
+Name, Role, Level
+Alice, Engineer, Lead
+Bob, Designer, Senior
+::
+
+---
+
+### 5. Interactive Components & Logic
+Inputs, buttons, and calculations.
+
+```markdown
+::input#val1[number value=10]/
+::input#val2[number value=5]/
+::button[label="Add" action=calc targets="result"]/
+::output#result[label="Sum:" fn=addFn]/
+
+::fn#addFn
+  val1 + val2
+::fn
+```
+
+::[pad=4 bg=surface]
+^S(flex, row, gap=2)
+::input#v1[number value=10]/
+::input#v2[number value=5]/
+::button[label="Add" primary action=calc targets="res"]/
+::output#res[label="Sum:" fn=add]/
+::fn#add
+  v1 + v2
+::fn
+^S
+::
+
+---
+
+### 6. Script Passthrough
+Drop into raw JavaScript when needed.
+```markdown
+::script
+console.log("Bildup is active!");
+::script
+```
+
+---
+
+### 7. Source Inheritance
+Reuse components and themes.
+```markdown
+::source ./theme.bu inline
+::source ./navbar.bu
+```
+::
+
+::#markdown[pad=6 bg=surface fg=secondary]
+## Markdown Guide
+All standard Markdown works exactly as expected.
+
+^S(flex, row, gap=4)
+::[pad=2]
+#### Text Styles
+- **Bold** with `**`
+- *Italic* with `*`
+- ~~Strikethrough~~ with `~~`
+- `Inline Code` with backticks
+::
+
+::[pad=2]
+#### Lists & Quotes
+1. Ordered lists
+2. Are supported
+> "Blockquotes look great in the dark theme."
+::
+^S
+
+#### Code Blocks
+```javascript
+function hello() {
+  console.log("Hello, Bildup!");
+}
+```
+::
+
+::[pad=6 bg=primary fg=secondary]
+Built with ^accent[Bildup]^. [Back to top](#)
+::
+
+^C
