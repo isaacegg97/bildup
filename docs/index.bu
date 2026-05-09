@@ -7,7 +7,42 @@
 ### The Markdown Superset for Interactive Static Pages.
 ::[pad=2 bg=secondary fg=primary flex row gap=2]
 ::button[label="View Specification" primary action=navigate target="#spec"]/
-::button[label="Markdown Guide" action=navigate target="#markdown"]/
+::button[label="Comparison" action=navigate target="#comparison"]/
+::
+::
+::
+
+::#philosophy[pad=6]
+## Philosophy
+Bildup was born from a simple observation: **Markdown is for documents, but the web is for applications.** 
+
+Most "static site" solutions today require a complex build chain (Node, Webpack, React, etc.) just to get a button and a flexbox layout. Bildup bridges this gap by adding just enough syntax to Markdown to allow for **layout control** and **interactivity** without sacrificing the readability of a plain text file.
+
+- **Zero-Build by Design**: Use `bildup-browser.js` to render `.bu` files directly. No NPM needed.
+- **Token Efficient**: Designed to be easily generated and parsed by both humans and LLMs.
+- **Self-Contained**: Compiles to a single HTML file with zero external dependencies (except `marked` if rendering in-browser).
+::
+
+::#comparison[pad=6 bg=surface fg=secondary]
+## Comparison
+
+^S(flex, row, gap=3)
+::[pad=3 bg=primary fg=secondary]
+#### vs. Standard Markdown
+Markdown is great for text, but terrible for layout. In Bildup, you don't have to abuse tables for multi-column layouts or inject raw HTML `<div>` tags. 
+::
+::[pad=3 bg=primary fg=secondary]
+#### vs. Raw HTML
+HTML is powerful but verbose. Bildup's `::[attrs]` syntax is a "shorthand" for common styling patterns (padding, background, flex) that would otherwise require multiple CSS classes or inline styles.
+::
+^S
+
+::table[striped border]
+Feature, Standard Markdown, Raw HTML, Bildup
+Layout Control, None (Single Column), Full (but verbose), Flexible (concise)
+Interactivity, None, Full (requires JS), Declarative (Calc Engine)
+Styling, Browser Default, Explicit CSS, Scoped Palettes
+Authoring, Very Fast, Slow, Fast
 ::
 ::
 
