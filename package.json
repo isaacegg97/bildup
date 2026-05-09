@@ -1,6 +1,9 @@
 {
-  "name": "bildup",
+  "name": "@bildup/bildup",
   "version": "0.2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "A markdown superset that compiles to self-contained static HTML.",
   "main": "bildup.js",
   "bin": {
