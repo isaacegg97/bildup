@@ -24,16 +24,6 @@ All standard markdown — headings, bold, italic, code, links, lists, blockquote
 
 ---
 
-## Install
-
-```bash
-npm install -g bildup
-```
-
-Requires Node.js. Depends on `marked` (`npm install marked`).
-
----
-
 ## CLI usage
 
 ```bash
