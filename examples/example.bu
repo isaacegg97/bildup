@@ -1,0 +1,152 @@
+# DredMark Example Document
+## A showcase of the spec in action
+
+This is a plain paragraph. Standard markdown works exactly as you'd expect —
+**bold**, *italic*, `code`, [links](https://example.com), all of it unchanged.
+
+---
+
+## Color and Style Regions
+
+^C(crimson, obsidian, amber)
+
+This entire section lives inside a color region. ^primary[Primary color]^ text sits
+alongside ^secondary[secondary]^ and ^accent[accent]^ text naturally in the flow.
+
+^S(flex, row, gap=3)
+::[bg=primary pad=2]
+Left column. Primary background.
+::
+::[bg=secondary pad=2]
+Right column. Secondary background.
+::
+::[bg=accent pad=2]
+Third column. Accent background.
+::
+^S
+
+^C
+
+Back to unstyled flow after the region closes.
+
+---
+
+## Nested Regions
+
+^C(slate, cream, gold)
+
+Outer palette: slate, cream, gold.
+
+::[pad=3 bg=secondary]
+
+  ^C(navy, coral, lime)
+
+  Inner palette overrides for this scope only. ^primary[Navy]^ and ^accent[lime]^ are
+  available here. Outer gold is gone until this closes.
+
+  ^C
+
+  Outer palette resumes here inside the same block. ^primary[Slate]^ is back.
+
+::
+
+^C
+
+---
+
+## Components — Static
+
+A self-closing input and a button that does nothing yet:
+
+::input#name[text placeholder="Your name"]/
+::input#email[email placeholder="Your email"]/
+::button[label="Subscribe" primary]/
+
+---
+
+## Components — Local Calculation
+
+::fn#tipCalc
+  subtotal * (tipPct / 100)
+::fn
+
+::fn#grandTotal
+  subtotal + tipCalc
+::fn
+
+::[flex col gap=2]
+::input#subtotal[number placeholder="Bill amount"]/
+::input#tipPct[number placeholder="Tip %" value=18]/
+::output#tipOut[label="Tip:" fn=tipCalc]/
+::output#totalOut[label="Total:" fn=grandTotal]/
+::button[label="Calculate" action=calc targets="tipOut,totalOut"]/
+::
+
+---
+
+## Components — Form Submission
+
+::[flex col gap=2]
+::input#contactName[text placeholder="Name"]/
+::input#contactMsg[textarea placeholder="Message"]/
+::button[label="Send Message" action=submit target="https://example.com/contact"]/
+::
+
+---
+
+## Escape Hatch
+
+Need something outside the spec? Drop to raw JS explicitly:
+
+::script
+document.querySelector('#contactName').addEventListener('focus', () => {
+  console.log('user is typing');
+});
+::script
+
+---
+
+## Typography in Layout
+
+^S(flex, col, gap=4)
+
+::[pad=4]
+### A heading inside a block
+
+Regular paragraph content flows naturally. The block is just a container —
+it doesn't fight the markdown inside it.
+
+- List items work
+- As expected
+- Inside blocks
+
+::
+
+^S
+
+---
+
+## Full Example — Landing Section
+
+^C(midnight, snow, electric)
+^S(flex, col, gap=0)
+
+::[pad=6 bg=primary fg=secondary]
+# ^accent[Build fast.]^ Ship clean.
+
+A tagline in a hero block. Primary background, secondary text, accent on the hook.
+
+::button[label="Get Started" primary action=navigate target="#signup"]/
+::button[label="Learn More" action=navigate target="#about"]/
+::
+
+::[pad=6 bg=secondary fg=primary]
+## What is this?
+
+A showcase of what a single document can do when the renderer carries opinions
+and the author only speaks up when they mean it.
+
+::
+
+^S
+^C

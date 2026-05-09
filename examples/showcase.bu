@@ -1,0 +1,225 @@
+# Bildup vs Markdown — A Visual Tour
+
+This document is written in **bildup**, a superset of markdown that compiles
+to a self-contained static HTML page. Everything you already know about
+markdown works exactly as before. Bildup adds the things markdown left out.
+
+---
+
+## 1. Plain Markdown — Unchanged
+
+Standard markdown works without modification. You get headings, **bold**,
+*italic*, `inline code`, [links](https://bildup.dev), and lists:
+
+- Unordered lists
+- Work as expected
+- No changes needed
+
+1. Ordered lists too
+2. Just like always
+3. Nothing to learn here
+
+> Blockquotes render normally. Bildup doesn't touch anything markdown
+> already handles well.
+
+```js
+// Code blocks work too, with language hints
+function greet(name) {
+  return `Hello, ${name}`;
+}
+```
+
+---
+
+## 2. Color Regions — What Markdown Can't Do
+
+Markdown has no concept of color. You either drop to raw HTML or go without.
+Bildup adds scoped color palettes that flow with the document.
+
+^C(crimson, #1a1a2e, #e2b96f)
+
+Inside a color region, three named slots are available: **primary**,
+**secondary**, and **accent**. You reference them by name, not by hex.
+
+^primary[This text is primary — crimson.]^
+^secondary[This is secondary — deep navy.]^
+^accent[This is accent — warm gold.]^
+
+The palette is scoped. It doesn't leak. When the region closes, you're
+back to normal text — no residue.
+
+^C
+
+That's unstyled again. The palette is gone.
+
+---
+
+## 3. Blocks — Semantic Layout Containers
+
+Markdown gives you no layout primitives. A block in bildup is a styled
+container — think of it as a div that doesn't require you to write CSS.
+
+::[pad=3 bg=#1a1a2e]
+This block has a dark background and padding. Written in two attributes.
+The equivalent HTML would be a div with an inline style string. Here it's
+just intent — the renderer handles the rest.
+::
+
+Blocks compose naturally with color regions:
+
+^C(#0d1117, #e8e8e8, #00eeff)
+^S(flex, row, gap=3)
+
+::[pad=3 bg=primary fg=secondary]
+**Primary block.**
+
+Background is slot one. Text is slot two. No hex codes in the document body.
+::
+
+::[pad=3 bg=secondary fg=primary]
+**Secondary block.**
+
+Swap the slots, swap the relationship. Same palette, different role.
+::
+
+::[pad=3 bg=primary fg=accent]
+**Accent text block.**
+
+Same dark background, accent color on text. Three slots, many combinations.
+::
+
+^S
+^C
+
+---
+
+## 4. Tables — CSV, Not Pipe Syntax
+
+Markdown tables look like this in source:
+
+```
+| Name    | Role      | Years |
+|---------|-----------|-------|
+| Alice   | Engineer  | 4     |
+| Bob     | Designer  | 2     |
+| Carmen  | PM        | 6     |
+```
+
+That's painful to write and worse to edit. Bildup uses CSV:
+
+::table[striped]
+Name, Role, Years, Location
+Alice, Engineer, 4, Austin
+Bob, Designer, 2, Portland
+Carmen, PM, 6, New York
+Dred, Security, 10, Benson AZ
+::
+
+Same data. Editable in any text editor. No alignment ceremony.
+
+---
+
+## 5. Nesting — Blocks Inside Blocks
+
+Blocks nest cleanly. The outer block sets context; inner blocks
+specialize without fighting the parent.
+
+^C(#0f2027, #e8e8e8, #f59e0b)
+
+::[pad=4 bg=primary fg=secondary]
+
+### This heading is inside a block
+
+Prose flows normally inside blocks. Markdown still renders — headings,
+lists, bold, all of it. The block is purely a layout and style container.
+It doesn't interfere with content.
+
+^S(flex, row, gap=3)
+
+::[pad=3 bg=#1a2a3a]
+**Column A**
+
+Nested blocks inside a flex row inside a colored outer block. Three levels
+deep, still readable source.
+::
+
+::[pad=3 bg=#1a3a2a]
+**Column B**
+
+Each column is its own block. Add or remove columns by adding or removing
+block pairs. No table syntax, no colspan math.
+::
+
+::[pad=3 bg=#3a1a2a]
+**Column C**
+
+The accent color is available anywhere inside the outer ^C region.
+^accent[This text is accent gold]^ even nested this deep.
+::
+
+^S
+
+::
+
+^C
+
+---
+
+## 6. Interactive Components
+
+Bildup components are first-class. No raw HTML, no script tags in the body.
+
+### Calculator
+
+::fn#mortgage
+  (principal * (rate/100/12) * Math.pow(1 + rate/100/12, months)) /
+  (Math.pow(1 + rate/100/12, months) - 1)
+::fn
+
+::[flex col gap=2]
+::input#principal[number placeholder="Loan amount ($)"]/
+::input#rate[number placeholder="Annual interest rate (%)" value=6.5]/
+::input#months[number placeholder="Term (months)" value=360]/
+::output#mortgageOut[label="Monthly payment:" fn=mortgage]/
+::button[label="Calculate" action=calc targets="mortgageOut"]/
+::
+
+---
+
+## 7. The Escape Hatch
+
+When you need something outside the spec, `::script` passes raw JS
+through to the compiled page. The compiler doesn't touch it.
+
+::script
+// Runs in the compiled page, not here
+document.addEventListener('DOMContentLoaded', () => {
+  const inputs = document.querySelectorAll('.bildup-input');
+  inputs.forEach(el => {
+    el.addEventListener('input', () => {
+      el.style.borderColor = el.value ? '#00eeff' : '#333';
+    });
+  });
+});
+::script
+
+The inputs above will highlight as you type — wired via the escape hatch,
+not specced behavior.
+
+---
+
+## Summary
+
+::table
+Feature, Markdown, Bildup
+Color, Raw HTML only, Scoped palette regions
+Layout, None, Flex and grid blocks
+Tables, Pipe syntax, CSV
+Components, None, Inputs, buttons, outputs
+Interactivity, None, Local calc and form submit
+Escape hatch, Raw HTML, ::script passthrough
+Core markdown, Full support, Full support
+::
+
+Bildup compiles to a single self-contained HTML file. No framework,
+no build pipeline, no dependencies in the output. Just a page.
