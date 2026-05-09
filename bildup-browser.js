@@ -141,10 +141,13 @@
   async function resolveSource(source, baseUrl, seen = new Set()) {
     const lines  = source.split('\n');
     const output = [];
+    let inCodeBlock = false;
 
     for (const line of lines) {
       const trimmed = line.trim();
-      const m = trimmed.match(/^::source\s+(\S+)(\s+inline)?$/);
+      if (trimmed.startsWith('```')) inCodeBlock = !inCodeBlock;
+
+      const m = !inCodeBlock && trimmed.match(/^::source\s+(\S+)(\s+inline)?$/);
       if (!m) { output.push(line); continue; }
 
       const fileUrl    = new URL(m[1], baseUrl).href;
@@ -247,6 +250,7 @@
       const chunks = [];
       const localOpenBlocks = [];
       let j = 0, mdBuffer = [];
+      let inCodeBlock = false;
 
       function flushMd() {
         if (!mdBuffer.length) return;
@@ -258,6 +262,13 @@
       while (j < lineArr.length) {
         const line    = lineArr[j];
         const trimmed = line.trim();
+
+        if (trimmed.startsWith('```')) inCodeBlock = !inCodeBlock;
+
+        if (inCodeBlock) {
+          mdBuffer.push(line);
+          j++; continue;
+        }
 
         if (trimmed.startsWith('<!-- source:') || trimmed.startsWith('<!-- /source:')) {
           j++; continue;
@@ -294,8 +305,12 @@
           flushMd();
           const attrs = parseAttrs(tableOpen[2] || '');
           const csvLines = [];
+          let inTableCode = false;
           j++;
-          while (j < lineArr.length && lineArr[j].trim() !== '::') {
+          while (j < lineArr.length) {
+            const it = lineArr[j].trim();
+            if (it.startsWith('```')) inTableCode = !inTableCode;
+            if (!inTableCode && it === '::') break;
             if (lineArr[j].trim()) csvLines.push(lineArr[j].trim()); j++;
           }
           if (j < lineArr.length) j++;
@@ -306,8 +321,14 @@
         const fnOpen = trimmed.match(/^::fn#(\w+)$/);
         if (fnOpen) {
           const fnId = fnOpen[1], body = [];
+          let inFnCode = false;
           j++;
-          while (j < lineArr.length && lineArr[j].trim() !== '::fn') { body.push(lineArr[j].trim()); j++; }
+          while (j < lineArr.length) {
+            const it = lineArr[j].trim();
+            if (it.startsWith('```')) inFnCode = !inFnCode;
+            if (!inFnCode && it === '::fn') break;
+            body.push(lineArr[j].trim()); j++;
+          }
           if (j < lineArr.length) j++;
           fns[fnId] = body.join(' ').trim();
           continue;
@@ -315,8 +336,14 @@
 
         if (trimmed === '::script') {
           const scriptLines = [];
+          let inScriptCode = false;
           j++;
-          while (j < lineArr.length && lineArr[j].trim() !== '::script') { scriptLines.push(lineArr[j]); j++; }
+          while (j < lineArr.length) {
+            const it = lineArr[j].trim();
+            if (it.startsWith('```')) inScriptCode = !inScriptCode;
+            if (!inScriptCode && it === '::script') break;
+            scriptLines.push(lineArr[j]); j++;
+          }
           if (j < lineArr.length) j++;
           scripts.push(scriptLines.join('\n'));
           continue;
@@ -358,15 +385,28 @@
           chunks.push(`<div${id ? ` id="${id}"` : ''}${css ? ` style="${css}"` : ''} class="bildup-block">`);
 
           const inner = [];
-          let depth = 1, foundClose = false;
+          let depth = 1, foundClose = false, inInnerCode = false;
+          let inInnerComp = null; // 'table', 'fn', or 'script'
           j++;
           while (j < lineArr.length) {
             const it = lineArr[j].trim();
-            const isOpen = (it.match(/^::([\w]*)(#\w+)?\[([^\]]*)\]$/) ||
-                            it.match(/^::([\w]+)(#\w+)?$/)) &&
-                           !it.match(/^::([\w]+)(#\w+)?\[.*\]\/$/);
-            if (isOpen && it !== '::') depth++;
-            if (it === '::') { depth--; if (depth === 0) { j++; foundClose = true; break; } }
+            if (it.startsWith('```')) inInnerCode = !inInnerCode;
+
+            if (!inInnerCode) {
+              if (inInnerComp) {
+                if (inInnerComp === 'table' && it === '::') inInnerComp = null;
+                else if (inInnerComp === 'fn' && it === '::fn') inInnerComp = null;
+                else if (inInnerComp === 'script' && it === '::script') inInnerComp = null;
+              } else {
+                const isOpen = (it.match(/^::([\w]*)(#\w+)?\[([^\]]*)\]$/) ||
+                                it.match(/^::([\w]+)(#\w+)?$/)) &&
+                               !it.match(/^::([\w]+)(#\w+)?\[.*\]\/$/);
+                const compMatch = it.match(/^::(table|fn|script)/);
+                if (compMatch) inInnerComp = compMatch[1];
+                else if (isOpen && it !== '::') depth++;
+                else if (it === '::') { depth--; if (depth === 0) { j++; foundClose = true; break; } }
+              }
+            }
             inner.push(lineArr[j]); j++;
           }
           if (foundClose) localOpenBlocks.pop();
