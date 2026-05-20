@@ -29,6 +29,10 @@ Standard markdown, plus:
 - **Semantic Blocks** (`::[pad=3 bg=primary] ... ::`): Layout wrappers that support local palette coloring.
 - **CSV Tables** (`::table[striped] ... ::`): Simple data grid formatting, no pipe alignment ceremony.
 - **Declarative Components**: Native interactive primitives (`::input/`, `::button/`, `::output/`).
+- **Functions (`::fn`)**: Define reusable calculations that reactively recompute when input values change.
+- **Source Inheritance (`::source`)**: Include external `.bu` files, either inline or wrapped, enabling component reuse and theme sharing.
+- **Script Passthrough (`::script`)**: Embed raw JavaScript directly into the compiled page for custom behavior.
+- **Inline Colors**: Use `^primary[Text]^`, `^secondary[Text]^`, `^accent[Text]^` for quick inline styling without blocks.
 - **Reactive Show-If Binding**: Element visibility updates (`show-if="input_id"` / `show-if="!input_id"`) based on input state.
 - **Component State Classes**: Dynamic class toggling (`state-empty="border-red-500"`) based on value validation.
 - **Auto-Evaluating Calc Engine**: Triggers instant recalculation of formulas (`::fn`) whenever dependencies change.

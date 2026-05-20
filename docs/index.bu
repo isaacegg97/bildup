@@ -113,7 +113,10 @@ Bob, Designer, Senior
 ---
 
 ### 5. Interactive Components & Logic
-Inputs, buttons, and calculations.
+- **Functions (`::fn`)**: Define reusable calculations that reactively recompute when input values change.
+- **Source Inheritance (`::source`)**: Include external `.bu` files, either inline or wrapped, enabling component reuse and theme sharing.
+- **Script Passthrough (`::script`)**: Embed raw JavaScript directly into the compiled page for custom behavior.
+- **Inline Colors**: Use `^primary[Text]^`, `^secondary[Text]^`, `^accent[Text]^` for quick inline styling without blocks.
 
 ```markdown
 ::input#val1[number value=10]/
