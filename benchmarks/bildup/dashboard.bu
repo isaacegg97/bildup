@@ -1,0 +1,61 @@
+# Server Monitor Dashboard
+
+^C(midnight, snow, electric)
+
+::[flex col gap=4 bg=primary fg=secondary pad=4 style="border-radius:12px; border:1px solid #222; box-shadow: 0 8px 32px rgba(0,0,0,0.5)"]
+
+  # 🖥️ System Health Dashboard
+  
+  Welcome to the real-time node diagnostics panel.
+
+  ^S(flex, row, gap=4, wrap)
+    
+    ::#cpu_card[flex col pad=3 bg=#1a1a2e style="border-radius:8px; flex:1; min-width:200px; border:1px solid #333"]
+      ### CPU Usage
+      Enter CPU load percentage:
+      ::input#cpu[number value=45 placeholder="CPU %"]/
+    ::
+
+    ::#mem_card[flex col pad=3 bg=#1a1a2e style="border-radius:8px; flex:1; min-width:200px; border:1px solid #333"]
+      ### Memory Load
+      Enter Memory load percentage:
+      ::input#mem[number value=60 placeholder="Memory %"]/
+    ::
+
+    ::#health_card[flex col pad=3 bg=#1a1a2e style="border-radius:8px; flex:1; min-width:200px; border:1px solid #333"]
+      ### Health Status
+      Calculated system health score:
+      ::output#health[label="Score:" fn=calcHealth]/
+      
+      ::fn#calcHealth
+        Math.max(0, 100 - (cpu * 0.6 + mem * 0.4))
+      ::fn
+    ::
+
+  ^S
+
+  ::#alert_banner[pad=3 bg=#dc2626 fg=white show-if=!health_ok style="border-radius:8px; font-weight:bold; animation: pulse 2s infinite"]
+    ⚠️ SYSTEM WARNING: HEALTH COMPROMISED
+    The server health score has fallen below safe operational parameters. Please reduce system load immediately.
+  ::
+
+  ::fn#health_ok
+    (100 - (cpu * 0.6 + mem * 0.4)) >= 60
+  ::fn
+
+::
+
+^C
+
+::script
+// Custom dashboard animation / styles
+const style = document.createElement('style');
+style.textContent = `
+@keyframes pulse {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; }
+  100% { opacity: 0.8; }
+}
+`;
+document.head.appendChild(style);
+::script

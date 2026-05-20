@@ -1,0 +1,41 @@
+# Database Performance Audit
+
+^C(navy, snow, coral)
+
+::[flex col gap=4 bg=primary fg=secondary pad=4 style="border-radius:12px; border:1px solid #222; box-shadow: 0 8px 32px rgba(0,0,0,0.5)"]
+
+  # 📊 Database Query Performance Grid
+  
+  Audit logs for slow-running analytical queries. Use the search threshold below to filter queries.
+
+  ::[flex row gap=3 align=center]
+    ### Alert Threshold (ms):
+    ::input#threshold[number value=300 placeholder="Threshold in ms"]/
+  ::
+
+  ::table[striped bordered]
+  Query ID, Database Table, Exec Time (ms), Status
+  QRY-1002, customer_orders, 480, SLOW
+  QRY-2089, user_sessions, 120, OPTIMAL
+  QRY-3112, product_inventory, 620, CRITICAL
+  QRY-4091, billing_transactions, 280, WARNING
+  QRY-5991, notification_logs, 50, OPTIMAL
+  ::
+
+  ::#summary_card[pad=3 bg=#1a1a2e style="border-radius:8px; border:1px solid #333"]
+    ### Query Analysis Metrics
+    
+    ::output#total_cost[label="Total execution cost estimate:" fn=calcCost]/
+    
+    ::fn#calcCost
+      (480 + 120 + 620 + 280 + 50) * 0.005
+    ::fn
+    
+    ::[show-if=threshold]
+      *Current dynamic alert warning threshold active at ^accent[threshold]^ ms.*
+    ::
+  ::
+
+::
+
+^C

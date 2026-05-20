@@ -50,37 +50,203 @@
   }
 
   // ─── Palette stack ──────────────────────────────────────────────────────────
+  /**
+   * Purpose: A stack containing active color palettes scoped to document regions.
+   * Authors: Antigravity
+   * Timestamp: 2026-05-20
+   * Footguns: None.
+   * Usage Example:
+   *   const p = new PaletteStack();
+   */
   class PaletteStack {
-    constructor() { this.stack = [null]; }
-    push(colors) { this.stack.push(colors); }
-    pop()  { if (this.stack.length > 1) this.stack.pop(); }
+    /**
+     * Purpose: Initializes the stack with default values.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example: const p = new PaletteStack();
+     */
+    constructor() { this.stack = [null]; this.fromInline = [false]; }
+    /**
+     * Purpose: Pushes a new palette scope onto the stack.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example: p.push(['red', 'green', 'blue'], true);
+     */
+    push(colors, fromInline = false) {
+      this.stack.push(colors);
+      this.fromInline.push(fromInline);
+    }
+    /**
+     * Purpose: Pops the current palette scope off the stack.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example: p.pop();
+     */
+    pop() {
+      if (this.stack.length > 1) {
+        this.stack.pop();
+        this.fromInline.pop();
+      }
+    }
+    /**
+     * Purpose: Gets the active palette on top of the stack.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example: const pCurrent = p.current();
+     */
     current() { return this.stack[this.stack.length - 1]; }
+    /**
+     * Purpose: Gets the color value for a slot (1, 2, 3) in the active palette.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example: const color = p.slot(1);
+     */
     slot(n) { const p = this.current(); return p ? resolveColor(p[n - 1] || '') : null; }
+    /**
+     * Purpose: Returns the stack depth.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example: const d = p.depth();
+     */
     depth() { return this.stack.length - 1; }
+    /**
+     * Purpose: Returns details of unclosed color regions still on the stack.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example: const list = p.unclosed();
+     */
+    unclosed() {
+      const res = [];
+      for (let i = 1; i < this.stack.length; i++) {
+        res.push({ type: 'color region', palette: this.stack[i], fromInline: this.fromInline[i] });
+      }
+      return res;
+    }
   }
 
   // ─── Style stack ────────────────────────────────────────────────────────────
+  /**
+   * Purpose: A stack containing active style layouts scoped to document regions.
+   * Authors: Antigravity
+   * Timestamp: 2026-05-20
+   * Footguns: None.
+   * Usage Example:
+   *   const s = new StyleStack();
+   */
   class StyleStack {
-    constructor() { this.stack = [{}]; }
-    push(attrs) { this.stack.push(attrs); }
-    pop() { if (this.stack.length > 1) this.stack.pop(); }
+    /**
+     * Purpose: Initializes the stack with default values.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example: const s = new StyleStack();
+     */
+    constructor() { this.stack = [{}]; this.fromInline = [false]; }
+    /**
+     * Purpose: Pushes a style region onto the stack.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example: s.push({ flex: true }, false);
+     */
+    push(attrs, fromInline = false) {
+      this.stack.push(attrs);
+      this.fromInline.push(fromInline);
+    }
+    /**
+     * Purpose: Pops a style region off the stack.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example: s.pop();
+     */
+    pop() {
+      if (this.stack.length > 1) {
+        this.stack.pop();
+        this.fromInline.pop();
+      }
+    }
+    /**
+     * Purpose: Returns stack depth.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example: const d = s.depth();
+     */
     depth() { return this.stack.length - 1; }
+    /**
+     * Purpose: Returns all unclosed style regions still on the stack.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example: const list = s.unclosed();
+     */
+    unclosed() {
+      const res = [];
+      for (let i = 1; i < this.stack.length; i++) {
+        res.push({ type: 'style region', fromInline: this.fromInline[i] });
+      }
+      return res;
+    }
   }
 
   // ─── Attribute parser ────────────────────────────────────────────────────────
+  /**
+   * Purpose: Parses attribute tokens from a tag attribute string.
+   * Authors: Antigravity
+   * Timestamp: 2026-05-20
+   * Footguns:
+   *   - The splitting logic on '=' splits strictly at the first '=' to prevent issues with values containing '='.
+   *   - Regexp handles hyphens and colons to support state names and namespaces.
+   * Usage Example:
+   *   const attrs = parseAttrs('state-empty="red-border" id="foo"');
+   */
   function parseAttrs(str) {
     const attrs = {};
     if (!str) return attrs;
-    const tokens = str.match(/(\w+)=(?:"[^"]*"|\S+)|\w+/g) || [];
+    const tokens = str.match(/([\w:-]+)=(?:"[^"]*"|\S+)|[\w:-]+/g) || [];
     for (const tok of tokens) {
-      if (tok.includes('=')) {
-        let [k, v] = tok.split('=');
-        attrs[k] = v.replace(/^"|"$/g, '');
+      const idx = tok.indexOf('=');
+      if (idx !== -1) {
+        const k = tok.slice(0, idx);
+        const v = tok.slice(idx + 1).replace(/^"|"$/g, '');
+        attrs[k] = v;
       } else {
         attrs[tok] = true;
       }
     }
     return attrs;
+  }
+
+  // ─── Extra Attributes Serializer ──────────────────────────────────────────────
+  /**
+   * Purpose: Serializes state-* and show-if attributes into proper HTML data-* attributes.
+   * Authors: Antigravity
+   * Timestamp: 2026-05-20
+   * Footguns:
+   *   - Does not escape attribute values for HTML context; values should be safe strings.
+   * Usage Example:
+   *   const extra = renderExtraAttrs({ 'show-if': 'myinput', 'state-empty': 'red' });
+   */
+  function renderExtraAttrs(attrs) {
+    const parts = [];
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k.startsWith('state-') || k === 'show-if') {
+        const valStr = v === true ? '' : `="${v}"`;
+        parts.push(`data-${k}${valStr}`);
+      } else if (k.startsWith('data-')) {
+        const valStr = v === true ? '' : `="${v}"`;
+        parts.push(`${k}${valStr}`);
+      }
+    }
+    return parts.length ? ' ' + parts.join(' ') : '';
   }
 
   // ─── Slot resolution ─────────────────────────────────────────────────────────
@@ -186,6 +352,14 @@
   }
 
   // ─── Core render ─────────────────────────────────────────────────────────────
+  /**
+   * Purpose: Compiles a Bildup source string into html, functions and scripts on the client side.
+   * Authors: Antigravity
+   * Timestamp: 2026-05-20
+   * Footguns: None.
+   * Usage Example:
+   *   const res = await render(source);
+   */
   async function render(source, opts = {}) {
     const { baseUrl = window.location.href } = opts;
     const markedParse = getMarked();
@@ -196,9 +370,18 @@
     const style   = new StyleStack();
     const fns     = {};
     const scripts = [];
+    let inlineSourceDepth = 0;
 
     function warn(msg) { console.warn(`[bildup] WARNING: ${msg}`); }
 
+    /**
+     * Purpose: Renders a CSV table block into a styled HTML table.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example:
+     *   const html = renderTable(['A,B', '1,2'], { striped: true });
+     */
     function renderTable(csvLines, attrs) {
       if (!csvLines.length) return '';
       const parseRow = l => l.split(',').map(c => c.trim());
@@ -212,8 +395,17 @@
       return `<div class="bildup-table-wrap"><table class="${cls}">${thead}${tbody}</table></div>`;
     }
 
+    /**
+     * Purpose: Renders a component (input, button, output) to its corresponding HTML.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns: None.
+     * Usage Example:
+     *   const html = renderComponent('input', 'username', { placeholder: 'Name' });
+     */
     function renderComponent(tag, id, attrs) {
       const idAttr = id ? ` id="${id}"` : '';
+      const extra = renderExtraAttrs(attrs);
       switch (tag) {
         case 'input': {
           const type = Object.keys(attrs).find(k =>
@@ -221,8 +413,8 @@
           const ph  = attrs.placeholder || '';
           const val = attrs.value !== undefined ? ` value="${attrs.value}"` : '';
           if (attrs.textarea)
-            return `<textarea${idAttr} placeholder="${ph}" class="bildup-input">${attrs.value||''}</textarea>`;
-          return `<input${idAttr} type="${type}" placeholder="${ph}"${val} class="bildup-input">`;
+            return `<textarea${idAttr}${extra} placeholder="${ph}" class="bildup-input">${attrs.value||''}</textarea>`;
+          return `<input${idAttr}${extra} type="${type}" placeholder="${ph}"${val} class="bildup-input">`;
         }
         case 'button': {
           const label = attrs.label || 'Button';
@@ -234,11 +426,11 @@
             onclick = ` onclick="bildupSubmit('${attrs.target}',event)"`;
           else if (attrs.action === 'calc' && attrs.targets)
             onclick = ` onclick="bildupCalc([${attrs.targets.split(',').map(t=>`'${t.trim()}'`).join(',')}])"`;
-          return `<button${idAttr} class="${cls}"${onclick}>${label}</button>`;
+          return `<button${idAttr}${extra} class="${cls}"${onclick}>${label}</button>`;
         }
         case 'output': {
           const dataFn = attrs.fn ? ` data-fn="${attrs.fn}"` : '';
-          return `<div class="bildup-output"${idAttr}${dataFn}>`
+          return `<div class="bildup-output"${idAttr}${dataFn}${extra}>`
             + `<span class="bildup-output-label">${attrs.label||''}</span>`
             + `<span class="bildup-output-value">—</span></div>`;
         }
@@ -246,6 +438,15 @@
       }
     }
 
+    /**
+     * Purpose: Iterates line-by-line to parse layout structures, style/color regions, and markdown content.
+     * Authors: Antigravity
+     * Timestamp: 2026-05-20
+     * Footguns:
+     *   - Incomplete code blocks or missing closures can cause parsed lines to be processed as raw markdown.
+     * Usage Example:
+     *   const html = renderLines(['# Title', '::[flex]', 'Text', '::']);
+     */
     function renderLines(lineArr, baseLineNum = 0) {
       const chunks = [];
       const localOpenBlocks = [];
@@ -270,12 +471,25 @@
           j++; continue;
         }
 
+        // Tracking inline source sentinel comments
+        if (trimmed.startsWith('<!-- source:inline')) {
+          inlineSourceDepth++;
+          j++; continue;
+        }
+        if (trimmed.startsWith('<!-- /source:inline')) {
+          inlineSourceDepth--;
+          j++; continue;
+        }
         if (trimmed.startsWith('<!-- source:') || trimmed.startsWith('<!-- /source:')) {
           j++; continue;
         }
 
         const cOpen = trimmed.match(/^\^C\(([^)]+)\)$/);
-        if (cOpen) { flushMd(); palette.push(cOpen[1].split(',').map(s=>s.trim())); j++; continue; }
+        if (cOpen) {
+          flushMd();
+          palette.push(cOpen[1].split(',').map(s=>s.trim()), inlineSourceDepth > 0);
+          j++; continue;
+        }
 
         if (trimmed === '^C') {
           flushMd();
@@ -288,7 +502,7 @@
         if (sOpen) {
           flushMd();
           const css = attrsToCSS(parseAttrs(sOpen[1]), palette);
-          style.push({});
+          style.push({}, inlineSourceDepth > 0);
           chunks.push(`<div style="${css};width:100%">`);
           j++; continue;
         }
@@ -378,6 +592,7 @@
           const tag = blockMatch[1] || 'div', idPart = blockMatch[2], attrStr = blockMatch[3] || '', rest = blockMatch[4] || '';
           const id = idPart ? idPart.slice(1) : null;
           const attrs = parseAttrs(attrStr);
+          const extra = renderExtraAttrs(attrs);
           
           // Inline block: ::[attrs] Content ::
           if (rest.trim().endsWith('::')) {
@@ -386,8 +601,8 @@
             const idAttr = id ? ` id="${id}"` : '';
             const cssAttr = css ? ` style="${css}"` : '';
             flushMd();
-            chunks.push(`<${tag}${idAttr}${cssAttr} class="bildup-block">`);
-            chunks.push(marked.parse(content));
+            chunks.push(`<${tag}${idAttr}${cssAttr}${extra} class="bildup-block">`);
+            chunks.push(markedParse(content));
             chunks.push(`</${tag}>`);
             j++; continue;
           }
@@ -395,7 +610,7 @@
           flushMd();
           const css     = attrsToCSS(attrs, palette);
           localOpenBlocks.push({ tag });
-          chunks.push(`<div${id ? ` id="${id}"` : ''}${css ? ` style="${css}"` : ''} class="bildup-block">`);
+          chunks.push(`<div${id ? ` id="${id}"` : ''}${css ? ` style="${css}"` : ''}${extra} class="bildup-block">`);
 
           const inner = [];
           let depth = 1, foundClose = false, inInnerCode = false;
@@ -434,8 +649,18 @@
 
       flushMd();
 
-      // Auto-close unclosed style regions
+      // Auto-close unclosed regions and warn if not from inline source
       if (baseLineNum === 0) {
+        for (const u of palette.unclosed()) {
+          if (!u.fromInline) {
+            warn(`unclosed color region (${u.palette?.join(', ')})`);
+          }
+        }
+        for (const u of style.unclosed()) {
+          if (!u.fromInline) {
+            warn(`unclosed style region`);
+          }
+        }
         for (let k = 0; k < style.depth(); k++) chunks.push('</div>');
       }
 
@@ -479,26 +704,103 @@ blockquote{border-left:3px solid #333;margin:1rem 0;padding:.5rem 1rem;color:#aa
 .bildup-table tr:last-child td{border-bottom:none}`;
 
   // ─── Runtime JS (injected into DOM after mount) ───────────────────────────────
+  /**
+   * Purpose: Injects client-side reactivity and auto-eval JS runtime.
+   * Authors: Antigravity
+   * Timestamp: 2026-05-20
+   * Footguns: None.
+   * Usage Example: injectRuntime(fns, scripts, container);
+   */
   function injectRuntime(fns, scripts, container) {
     const script = document.createElement('script');
     script.textContent = `
 (function(){
 const _fns=${JSON.stringify(fns)};
-window.bildupCalc=function(ids){
+window.bildupAutoEval = function() {
   const vars={};
   document.querySelectorAll('input[id],textarea[id]').forEach(el=>{
     const v=parseFloat(el.value);vars[el.id]=isNaN(v)?el.value:v;
   });
-  ids.forEach(id=>{
-    const el=document.getElementById(id);if(!el)return;
+  document.querySelectorAll('.bildup-output[data-fn]').forEach(el=>{
     const fnId=el.dataset.fn;if(!fnId||!_fns[fnId])return;
     let expr=_fns[fnId];
-    Object.keys(_fns).forEach(n=>{expr=expr.replace(new RegExp('\\b'+n+'\\b','g'),'('+_fns[n]+')');});
+    Object.keys(_fns).forEach(n=>{expr=expr.replace(new RegExp('\\\\b'+n+'\\\\b','g'),'('+_fns[n]+')');});
     try{
       const result=new Function(...Object.keys(vars),'return '+expr)(...Object.values(vars));
       el.querySelector('.bildup-output-value').textContent=typeof result==='number'?result.toFixed(2):result;
     }catch(e){el.querySelector('.bildup-output-value').textContent='err';}
   });
+};
+window.bildupUpdateReactive = function() {
+  document.querySelectorAll('[data-show-if]').forEach(el => {
+    const cond = el.getAttribute('data-show-if');
+    if (!cond) return;
+    const isInverse = cond.startsWith('!');
+    const targetId = isInverse ? cond.slice(1) : cond;
+    const target = document.getElementById(targetId);
+    let truthy = false;
+    if (target) {
+      if (target.type === 'checkbox' || target.type === 'radio') {
+        truthy = target.checked;
+      } else {
+        truthy = Boolean(target.value && target.value.trim());
+      }
+    }
+    const show = isInverse ? !truthy : truthy;
+    el.style.display = show ? '' : 'none';
+  });
+};
+window.bildupUpdateStates = function() {
+  document.querySelectorAll('*').forEach(el => {
+    if (!el.attributes) return;
+    for (let i = 0; i < el.attributes.length; i++) {
+      const attr = el.attributes[i];
+      if (attr.name.startsWith('data-state-')) {
+        const match = attr.name.match(/^data-state-([a-zA-Z0-9]+)(?:-(.+))?$/);
+        if (!match) continue;
+        const cond = match[1];
+        const targetId = match[2];
+        const className = attr.value;
+        const target = targetId ? document.getElementById(targetId) : el;
+        if (!target) continue;
+        
+        let active = false;
+        const val = target.value !== undefined ? target.value : '';
+        const isCheckbox = target.type === 'checkbox' || target.type === 'radio';
+        
+        if (cond === 'empty') {
+          active = isCheckbox ? !target.checked : (!val || !val.trim());
+        } else if (cond === 'error') {
+          const isInvalidNum = target.type === 'number' && val !== '' && isNaN(parseFloat(val));
+          const hasValErr = target.validity && !target.validity.valid;
+          active = isCheckbox ? !target.checked : (!val || !val.trim() || isInvalidNum || hasValErr);
+        } else if (cond === 'neg' || cond === 'negative') {
+          const num = parseFloat(val);
+          active = !isNaN(num) && num < 0;
+        } else if (cond === 'pos' || cond === 'positive') {
+          const num = parseFloat(val);
+          active = !isNaN(num) && num > 0;
+        } else if (cond === 'zero') {
+          const num = parseFloat(val);
+          active = !isNaN(num) && num === 0;
+        }
+        
+        if (active) {
+          className.split(' ').filter(Boolean).forEach(c => el.classList.add(c));
+        } else {
+          className.split(' ').filter(Boolean).forEach(c => el.classList.remove(c));
+        }
+      }
+    }
+  });
+};
+window.bildupUpdate = function() {
+  window.bildupAutoEval();
+  window.bildupUpdateReactive();
+  window.bildupUpdateStates();
+};
+window.bildupCalc=function(ids){
+  window.bildupUpdate();
 };
 window.bildupSubmit=async function(url,e){
   e.preventDefault();
@@ -509,12 +811,35 @@ window.bildupSubmit=async function(url,e){
     alert('Submitted!');
   }catch(err){alert('Submission failed: '+err.message);}
 };
+
+// Event listeners
+if (!window._bildupListenersAttached) {
+  window._bildupListenersAttached = true;
+  document.addEventListener('input', (e) => {
+    if (e.target && e.target.id) {
+      window.bildupUpdate();
+    }
+  });
+  document.addEventListener('change', (e) => {
+    if (e.target && e.target.id) {
+      window.bildupUpdate();
+    }
+  });
+}
+window.bildupUpdate();
 ${scripts.join('\n')}
 })();`;
     container.appendChild(script);
   }
 
   // ─── Mount ───────────────────────────────────────────────────────────────────
+  /**
+   * Purpose: Mounts compiled bildup template HTML into a container element and runs the runtime script.
+   * Authors: Antigravity
+   * Timestamp: 2026-05-20
+   * Footguns: None.
+   * Usage Example: mount(source, document.getElementById('app'));
+   */
   async function mount(source, container, opts = {}) {
     container.innerHTML = '<div style="color:#888;padding:1rem">[bildup] rendering...</div>';
     try {
@@ -527,8 +852,66 @@ ${scripts.join('\n')}
     }
   }
 
+  // ─── Hydrate ─────────────────────────────────────────────────────────────────
+  /**
+   * Purpose: Merges new HTML content into a DOM container while preserving active input values, focus, and cursor selection.
+   * Authors: Antigravity
+   * Timestamp: 2026-05-20
+   * Footguns:
+   *   - If elements are reordered dynamically without ids, cursor/focus might be lost or shifted.
+   * Usage Example:
+   *   bildup.hydrate(document.getElementById('app'), newHtml);
+   */
+  function hydrate(container, newHtml) {
+    const activeEl = document.activeElement;
+    const activeId = activeEl ? activeEl.id : null;
+    const selectionStart = activeEl && activeEl.selectionStart !== undefined ? activeEl.selectionStart : null;
+    const selectionEnd = activeEl && activeEl.selectionEnd !== undefined ? activeEl.selectionEnd : null;
+
+    const savedState = {};
+    container.querySelectorAll('input[id],textarea[id],select[id]').forEach(el => {
+      savedState[el.id] = {
+        value: el.value,
+        checked: el.checked
+      };
+    });
+
+    container.innerHTML = newHtml;
+
+    container.querySelectorAll('input[id],textarea[id],select[id]').forEach(el => {
+      if (savedState[el.id] !== undefined) {
+        el.value = savedState[el.id].value;
+        el.checked = savedState[el.id].checked;
+      }
+    });
+
+    if (activeId) {
+      const elToFocus = container.querySelector('#' + CSS.escape(activeId));
+      if (elToFocus) {
+        elToFocus.focus();
+        if (selectionStart !== null && selectionEnd !== null) {
+          try {
+            elToFocus.setSelectionRange(selectionStart, selectionEnd);
+          } catch (e) {
+            // Ignore
+          }
+        }
+      }
+    }
+
+    if (window.bildupUpdate) {
+      window.bildupUpdate();
+    }
+  }
+
   // ─── Auto-boot ───────────────────────────────────────────────────────────────
-  // Injects bildup CSS once, then processes all <script type="text/bildup"> tags.
+  /**
+   * Purpose: Automatically boots all script type=text/bildup tags on the page.
+   * Authors: Antigravity
+   * Timestamp: 2026-05-20
+   * Footguns: None.
+   * Usage Example: boot();
+   */
   async function boot() {
     // Inject CSS
     if (!document.getElementById('bildup-styles')) {
@@ -567,7 +950,7 @@ ${scripts.join('\n')}
   }
 
   // ─── Public API ──────────────────────────────────────────────────────────────
-  const bildup = { render, mount, boot };
+  const bildup = { render, mount, boot, hydrate };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = bildup;
@@ -583,5 +966,7 @@ ${scripts.join('\n')}
       boot();
     }
   }
+
+  return bildup;
 
 })(typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : this);
