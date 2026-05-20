@@ -81,14 +81,14 @@ Drop this into any HTML page to execute/hydrate directly:
 
 ## 📊 Benchmarks
 
-We maintain a suite of identical UI pages implemented in Tailwind/HTML vs Bildup to measure token footprints using the `cl100k_base` vocabulary.
+We maintain a suite of identical UI pages implemented in HTML vs Bildup to measure token footprints.
 
 Run the audit tool locally:
 ```bash
 node scripts/audit-tokens.js
 ```
 
-| Page | Tailwind/HTML (Tokens) | Bildup (Tokens) | Token Savings |
+| Page | HTML (Tokens) | Bildup (Tokens) | Token Savings |
 |---|---|---|---|
 | **Dashboard** | Measured | Measured | ~65-70% |
 | **Datagrid** | Measured | Measured | ~60-65% |
