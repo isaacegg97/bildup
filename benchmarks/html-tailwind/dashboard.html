@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Monitor Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+    .animate-pulse-custom {
+      animation: pulse 2s infinite;
+    }
+  </style>
+</head>
+<body class="bg-black text-gray-100 font-sans max-w-4xl mx-auto p-8">
+  <div class="flex flex-col gap-4 bg-[#0d1117] text-[#f8f9fa] p-8 rounded-xl border border-gray-800 shadow-2xl">
+    <h1 class="text-3xl font-bold">🖥️ System Health Dashboard</h1>
+    <p class="text-gray-400">Welcome to the real-time node diagnostics panel.</p>
+
+    <div class="flex flex-col md:flex-row gap-4">
+      <!-- CPU -->
+      <div id="cpu_card" class="flex flex-col p-6 bg-[#1a1a2e] rounded-lg flex-1 min-w-[200px] border border-gray-700">
+        <h3 class="text-xl font-semibold mb-2">CPU Usage</h3>
+        <p class="text-sm text-gray-400 mb-2">Enter CPU load percentage:</p>
+        <input id="cpu" type="number" value="45" placeholder="CPU %" class="block w-full p-2 bg-[#1a1a1a] border border-gray-700 rounded text-white focus:outline-none focus:border-cyan-400 transition-colors">
+      </div>
+
+      <!-- Memory -->
+      <div id="mem_card" class="flex flex-col p-6 bg-[#1a1a2e] rounded-lg flex-1 min-w-[200px] border border-gray-700">
+        <h3 class="text-xl font-semibold mb-2">Memory Load</h3>
+        <p class="text-sm text-gray-400 mb-2">Enter Memory load percentage:</p>
+        <input id="mem" type="number" value="60" placeholder="Memory %" class="block w-full p-2 bg-[#1a1a1a] border border-gray-700 rounded text-white focus:outline-none focus:border-cyan-400 transition-colors">
+      </div>
+
+      <!-- Health -->
+      <div id="health_card" class="flex flex-col p-6 bg-[#1a1a2e] rounded-lg flex-1 min-w-[200px] border border-gray-700">
+        <h3 class="text-xl font-semibold mb-2">Health Status</h3>
+        <p class="text-sm text-gray-400 mb-2">Calculated system health score:</p>
+        <div class="flex items-center gap-3 py-2 text-lg">
+          <span class="text-gray-400">Score:</span>
+          <span id="health-val" class="font-bold text-[#e8e8e8]">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert -->
+    <div id="alert_banner" class="hidden p-6 bg-red-600 text-white rounded-lg font-bold animate-pulse-custom">
+      ⚠️ SYSTEM WARNING: HEALTH COMPROMISED
+      The server health score has fallen below safe operational parameters. Please reduce system load immediately.
+    </div>
+  </div>
+
+  <script>
+    function updateDashboard() {
+      const cpu = parseFloat(document.getElementById('cpu').value) || 0;
+      const mem = parseFloat(document.getElementById('mem').value) || 0;
+      
+      const health = Math.max(0, 100 - (cpu * 0.6 + mem * 0.4));
+      document.getElementById('health-val').textContent = health.toFixed(2);
+      
+      const alertBanner = document.getElementById('alert_banner');
+      if (health < 60) {
+        alertBanner.classList.remove('hidden');
+      } else {
+        alertBanner.classList.add('hidden');
+      }
+    }
+
+    document.querySelectorAll('#cpu, #mem').forEach(el => {
+      el.addEventListener('input', updateDashboard);
+    });
+
+    updateDashboard();
+  </script>
+</body>
+</html>

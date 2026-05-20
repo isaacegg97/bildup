@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Portal Settings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-gray-100 font-sans max-w-4xl mx-auto p-8">
+  <div class="flex flex-col gap-4 bg-[#111111] text-[#f8f9fa] p-8 rounded-xl border border-gray-800 shadow-2xl">
+    <h1 class="text-3xl font-bold">⚙️ Connection Settings Portal</h1>
+    <p class="text-gray-400">Configure system proxy connection parameters and advanced clustering.</p>
+
+    <!-- Node ID -->
+    <div class="flex flex-col gap-2">
+      <h3 class="text-lg font-semibold">Node Identifier</h3>
+      <input id="node_id" type="text" value="node-us-east-01" placeholder="Enter node ID" class="w-full p-2 bg-[#1a1a1a] border border-gray-700 rounded text-white focus:outline-none focus:border-cyan-400 transition-colors">
+    </div>
+
+    <!-- Node Port -->
+    <div class="flex flex-col gap-2">
+      <h3 class="text-lg font-semibold">Node Port</h3>
+      <input id="node_port" type="number" value="8080" placeholder="Port number (e.g. 8080)" class="w-full p-2 bg-[#1a1a1a] border border-gray-700 rounded text-white focus:outline-none focus:border-cyan-400 transition-colors">
+    </div>
+
+    <!-- Toggle Checkbox -->
+    <div class="flex items-center gap-3 py-2">
+      <input id="show_advanced" type="checkbox" class="w-4 h-4 rounded border-gray-700 bg-neutral-900 focus:ring-cyan-500">
+      <span class="font-medium text-gray-300">Show Advanced Clustering Parameters</span>
+    </div>
+
+    <!-- Advanced Panel -->
+    <div id="advanced_panel" class="hidden flex flex-col gap-3 p-6 bg-[#1e1e1e] rounded-lg border border-gray-800">
+      <h3 class="text-xl font-bold text-amber-500">🚀 Clustering Settings</h3>
+      
+      <div class="flex flex-col gap-2">
+        <h4 class="text-sm font-semibold text-gray-400">Cluster Sync Interval (seconds)</h4>
+        <input id="sync_interval" type="number" value="30" placeholder="Sync interval" class="w-full p-2 bg-[#1a1a1a] border border-gray-700 rounded text-white focus:outline-none focus:border-cyan-400 transition-colors">
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <h4 class="text-sm font-semibold text-gray-400">Load Balancing Strategy</h4>
+        <input id="lb_strategy" type="text" value="round-robin" placeholder="Strategy" class="w-full p-2 bg-[#1a1a1a] border border-gray-700 rounded text-white focus:outline-none focus:border-cyan-400 transition-colors">
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="flex flex-row gap-3 mt-4">
+      <button id="save_btn" class="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded transition-colors shadow">
+        Apply & Save Config
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function updateSettings() {
+      // Input Validation
+      const nodeId = document.getElementById('node_id');
+      if (!nodeId.value || !nodeId.value.trim()) {
+        nodeId.style.border = '1px solid #dc2626';
+        nodeId.style.background = '#3a1a1a';
+      } else {
+        nodeId.style.border = '';
+        nodeId.style.background = '';
+      }
+
+      const nodePort = document.getElementById('node_port');
+      const nodePortVal = parseFloat(nodePort.value);
+      if (nodePort.value === '' || isNaN(nodePortVal)) {
+        nodePort.style.border = '1px solid #dc2626';
+        nodePort.style.background = '#3a1a1a';
+      } else {
+        nodePort.style.border = '';
+        nodePort.style.background = '';
+      }
+
+      const showAdv = document.getElementById('show_advanced').checked;
+      const advPanel = document.getElementById('advanced_panel');
+      if (showAdv) {
+        advPanel.classList.remove('hidden');
+      } else {
+        advPanel.classList.add('hidden');
+      }
+
+      // Sync Interval Validation
+      const syncInterval = document.getElementById('sync_interval');
+      const syncIntervalVal = parseFloat(syncInterval.value);
+      if (syncInterval.value === '' || isNaN(syncIntervalVal)) {
+        syncInterval.style.border = '1px solid #dc2626';
+      } else {
+        syncInterval.style.border = '';
+      }
+    }
+
+    document.querySelectorAll('#node_id, #node_port, #show_advanced, #sync_interval').forEach(el => {
+      el.addEventListener('input', updateSettings);
+      el.addEventListener('change', updateSettings);
+    });
+
+    document.getElementById('save_btn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      const payload = {
+        node_id: document.getElementById('node_id').value,
+        node_port: document.getElementById('node_port').value,
+        sync_interval: document.getElementById('sync_interval').value,
+        lb_strategy: document.getElementById('lb_strategy').value
+      };
+      try {
+        await fetch('https://api.internal.server/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        alert('Submitted!');
+      } catch (err) {
+        alert('Submission failed: ' + err.message);
+      }
+    });
+
+    updateSettings();
+  </script>
+</body>
+</html>

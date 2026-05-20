@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Performance Audit</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-gray-100 font-sans max-w-4xl mx-auto p-8">
+  <div class="flex flex-col gap-4 bg-[#0a1128] text-[#f8f9fa] p-8 rounded-xl border border-gray-800 shadow-2xl">
+    <h1 class="text-3xl font-bold">📊 Database Query Performance Grid</h1>
+    <p class="text-gray-400">Audit logs for slow-running analytical queries. Use the search threshold below to filter queries.</p>
+
+    <div class="flex items-center gap-3">
+      <h3 class="text-lg font-semibold">Alert Threshold (ms):</h3>
+      <input id="threshold" type="number" value="300" placeholder="Threshold in ms" class="p-2 bg-[#1a1a1a] border border-gray-700 rounded text-white focus:outline-none focus:border-cyan-400 transition-colors">
+    </div>
+
+    <div class="overflow-x-auto my-4">
+      <table class="w-full text-left border-collapse border border-gray-800">
+        <thead>
+          <tr class="border-b border-gray-700 bg-slate-900/50">
+            <th class="p-3 font-semibold text-gray-300">Query ID</th>
+            <th class="p-3 font-semibold text-gray-300">Database Table</th>
+            <th class="p-3 font-semibold text-gray-300">Exec Time (ms)</th>
+            <th class="p-3 font-semibold text-gray-300">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-gray-800 hover:bg-slate-900/20">
+            <td class="p-3">QRY-1002</td>
+            <td class="p-3">customer_orders</td>
+            <td class="p-3">480</td>
+            <td class="p-3 text-yellow-500 font-medium">SLOW</td>
+          </tr>
+          <tr class="border-b border-gray-800 bg-slate-900/10 hover:bg-slate-900/20">
+            <td class="p-3">QRY-2089</td>
+            <td class="p-3">user_sessions</td>
+            <td class="p-3">120</td>
+            <td class="p-3 text-green-500 font-medium">OPTIMAL</td>
+          </tr>
+          <tr class="border-b border-gray-800 hover:bg-slate-900/20">
+            <td class="p-3">QRY-3112</td>
+            <td class="p-3">product_inventory</td>
+            <td class="p-3">620</td>
+            <td class="p-3 text-red-500 font-medium">CRITICAL</td>
+          </tr>
+          <tr class="border-b border-gray-800 bg-slate-900/10 hover:bg-slate-900/20">
+            <td class="p-3">QRY-4091</td>
+            <td class="p-3">billing_transactions</td>
+            <td class="p-3">280</td>
+            <td class="p-3 text-orange-500 font-medium">WARNING</td>
+          </tr>
+          <tr class="border-b border-gray-800 hover:bg-slate-900/20">
+            <td class="p-3">QRY-5991</td>
+            <td class="p-3">notification_logs</td>
+            <td class="p-3">50</td>
+            <td class="p-3 text-green-500 font-medium">OPTIMAL</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="summary_card" class="p-6 bg-[#1a1a2e] rounded-lg border border-gray-700">
+      <h3 class="text-xl font-semibold mb-3">Query Analysis Metrics</h3>
+      <div class="flex items-center gap-3 py-2 text-lg">
+        <span class="text-gray-400">Total execution cost estimate:</span>
+        <span id="cost-val" class="font-bold text-[#e8e8e8]">—</span>
+      </div>
+      <p id="alert-text" class="text-sm mt-3 italic text-yellow-600">
+        Current dynamic alert warning threshold active at <span id="threshold-val">300</span> ms.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    function updateMetrics() {
+      const thresholdVal = document.getElementById('threshold').value;
+      const threshold = parseFloat(thresholdVal) || 0;
+      
+      const cost = (480 + 120 + 620 + 280 + 50) * 0.005;
+      document.getElementById('cost-val').textContent = cost.toFixed(2);
+      
+      const alertText = document.getElementById('alert-text');
+      const thresholdSpan = document.getElementById('threshold-val');
+      
+      if (thresholdVal && thresholdVal.trim()) {
+        alertText.style.display = '';
+        thresholdSpan.textContent = thresholdVal;
+      } else {
+        alertText.style.display = 'none';
+      }
+    }
+
+    document.getElementById('threshold').addEventListener('input', updateMetrics);
+    updateMetrics();
+  </script>
+</body>
+</html>
