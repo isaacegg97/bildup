@@ -35,7 +35,7 @@ jobs:
           cp bildup-browser.js public/
           # Build benchmark HTML pages and copy them
           mkdir -p public/benchmarks
-          cp benchmarks/bildup/html-tailwind/*.html public/benchmarks/
+          cp benchmarks/html-tailwind/*.html public/benchmarks/
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
