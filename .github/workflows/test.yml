@@ -22,3 +22,14 @@ jobs:
         run: npm install
       - name: Run tests
         run: node scripts/test.js
+      - name: Run token-audit
+        run: node scripts/audit-tokens.js
+      - name: Run benchmark comparison
+        run: |
+          for f in benchmarks/bildup/*.bu; do
+            name=$(basename "$f" .bu)
+            node bildup.js "$f" -o "benchmarks/bildup/${name}.html"
+            diff -q "benchmarks/bildup/${name}.html" "benchmarks/html-tailwind/${name}.html" \
+              && echo "✅ $name matches" \
+              || (echo "❌ $name mismatch" && exit 1)
+          done

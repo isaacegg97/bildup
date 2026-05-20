@@ -33,6 +33,9 @@ jobs:
           node bildup.js docs/index.bu -o public/index.html
           # Copy browser renderer for any live-rendered examples
           cp bildup-browser.js public/
+          # Build benchmark HTML pages and copy them
+          mkdir -p public/benchmarks
+          cp benchmarks/html-tailwind/*.html public/benchmarks/
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
